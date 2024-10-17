@@ -1,15 +1,21 @@
 from functools import partial
 import streamlit as st
+from datetime import datetime
 
 # Assuming these imports for your equity search and session management
 from utils.yahoo_search_helper import search_functionality
 from utils.session_state_helper import refresh_state, remove_equity, add_portfolio
+from utils.base_templates import Equity, Portfolio
 
 # Set page configuration
 st.set_page_config(page_title="Equity Transfer Pricing - Portfolio Setup", page_icon="💼")
 
 st.title("Equity Transfer Pricing - Portfolio Creation 💼")
 st.subheader("Add equities with their vesting schedules.")
+
+# Initialize portfolio in session state if it doesn't exist
+if 'created_portfolio' not in st.session_state:
+    st.session_state.created_portfolio = Portfolio(name="", equities={})
 
 # Add new portfolio
 new_portfolio_name = st.text_input("New Portfolio Name")
@@ -19,6 +25,7 @@ if new_portfolio_name:
         st.write(f'Add Equities to {new_portfolio_name}')
         st.session_state.created_portfolio.name = new_portfolio_name
 
+        # Search functionality for equities
         search_functionality("main_search")
 
         # Display added equities with vesting date inputs
@@ -31,7 +38,7 @@ if new_portfolio_name:
                         st.write(f"- **{equity.name}** ({equity.ticker})")
                     with col2:
                         vesting_date = st.date_input(f"Vesting Date for {equity.ticker}", key=f"vesting_{equity.ticker}")
-                        # You can store the vesting date in the equity object if needed
+                        # Store the vesting date in the equity object
                         equity.vesting_date = vesting_date
                     with col3:
                         if st.button("Delete", key=equity.ticker, on_click=partial(remove_equity, equity=equity)):
@@ -42,4 +49,4 @@ if new_portfolio_name:
                     st.success(f"Portfolio '{new_portfolio_name}' created successfully!")
                     refresh_state(True)
     else:
-        st.success("This portfolio already exists! Try an alternate name")
+        st.warning("This portfolio name already exists! Try an alternate name.")
