@@ -1,7 +1,7 @@
 pandas==1.5.1
 pydantic==2.9.2
 requests
-streamlit==1.19.0
-streamlit_extras==0.5.0
-streamlit_searchbox==0.1.17
+streamlit
+streamlit_extras
+streamlit_searchbox
 yfinance==0.2.44
