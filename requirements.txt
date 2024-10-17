@@ -1,4 +1,5 @@
-pandas==1.5.1
+pandas
+pandas-datareader
 pydantic==2.9.2
 requests
 streamlit
