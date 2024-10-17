@@ -2,6 +2,7 @@ pandas
 pandas-datareader
 pydantic==2.9.2
 requests
+setuptools
 streamlit
 streamlit_extras
 streamlit_searchbox
