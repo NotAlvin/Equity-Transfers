@@ -93,7 +93,7 @@ def generate_report(selected_portfolio):
                     payout_schedule.append({
                         "Equity": equity.name,
                         "Ticker": equity.ticker,
-                        "Vesting Date": datetime.fromtimestamp(event.vesting_date).strftime("%Y-%m-%d"),
+                        "Vesting Date": datetime.fromtimestamp(event.vesting_date),
                         "Shares Vested": event.shares_vested,
                         f"Value ({base_currency})": round(value, 2)
                     })
@@ -103,14 +103,20 @@ def generate_report(selected_portfolio):
             payout_df = pd.DataFrame(payout_schedule)
             # Ensure the vesting_date is sorted
             payout_df = payout_df.sort_values(by='Vesting Date')
-
+            daily_payouts = payout_df.groupby('Vesting Date').agg({f'Value ({base_currency})': 'sum'}).reset_index()
+            daily_payouts.columns = ['Vesting Date', 'Amount Paid']
+            payout_df['Month'] = payout_df['Vesting Date'].dt.to_period('M')
+            monthly_payout_df = payout_df.groupby(['Month']).agg({
+                f'Value ({base_currency})': 'sum'
+            }).reset_index()
             # Calculate cumulative payout
-            payout_df[f'Cumulative Payout ({base_currency})'] = payout_df[f'Value ({base_currency})'].cumsum()
+            monthly_payout_df[f'Cumulative Payout ({base_currency})'] = monthly_payout_df[f'Value ({base_currency})'].cumsum()
+
 
             # Plotting the cumulative payouts over time
             if not payout_df.empty:
-                st.line_chart(payout_df.set_index('Vesting Date')[f'Cumulative Payout ({base_currency})'])
-                st.table(payout_df)
+                st.bar_chart(daily_payouts.set_index('Vesting Date'))
+                st.table(monthly_payout_df)
 
         st.write(f"**Total Portfolio Value using '{selected_method}' method in {base_currency}:** {total_portfolio_value:,.2f} {base_currency}")
 
