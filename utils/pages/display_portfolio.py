@@ -35,7 +35,7 @@ def generate_report(selected_portfolio):
 
     if st.button("Generate Report"):
         st.success(f"Generating report for portfolio: {selected_portfolio.name}")
-
+        st.subheader("Recent price changes in underlying equities")
         # Collect the currencies for all equities in the selected portfolio
         currencies = {equity.currency for equity in selected_portfolio.equities.values()}
         
@@ -95,13 +95,22 @@ def generate_report(selected_portfolio):
                         "Ticker": equity.ticker,
                         "Vesting Date": datetime.fromtimestamp(event.vesting_date).strftime("%Y-%m-%d"),
                         "Shares Vested": event.shares_vested,
-                        f"Value in {base_currency}": round(value, 2)
+                        f"Value ({base_currency})": round(value, 2)
                     })
 
         # Display the payout schedule as a table
         if payout_schedule:
             payout_df = pd.DataFrame(payout_schedule)
-            st.table(payout_df)
+            # Ensure the vesting_date is sorted
+            payout_df = payout_df.sort_values(by='Vesting Date')
+
+            # Calculate cumulative payout
+            payout_df[f'Cumulative Payout ({base_currency})'] = payout_df[f'Value ({base_currency})'].cumsum()
+
+            # Plotting the cumulative payouts over time
+            if not payout_df.empty:
+                st.line_chart(payout_df.set_index('Vesting Date')[f'Cumulative Payout ({base_currency})'])
+                st.table(payout_df)
 
         st.write(f"**Total Portfolio Value using '{selected_method}' method in {base_currency}:** {total_portfolio_value:,.2f} {base_currency}")
 
